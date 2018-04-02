@@ -10,81 +10,68 @@
  * }
  */
 import Message from 'message-event';
-class Data extends Message{
-    _data = {};
-    _all = {};
+class childData extends Message {
     constructor(obj = {}) {
         super();
-        this._update = obj.update;
-        this._data = Object.assign({}, obj.data || {});
+        this._$$update = obj.update;
+        this._$$data = Object.assign({}, obj.data || {});
+        this._$$DATA = obj.top;
+    }
+    get DATA(){
+        return this._$$DATA;
+    }
+    set state (value){
+        this._$$data = value;
+        return this._$$data;
     }
     get state() {
-        return this._data;
+        return this._$$data;
     }
-    initState(type, obj) {
-        if (typeof type === 'string') {
-            if (this._data[type]) {
-                return console.error('it has already init state' + this._data[type])
-            } else {
-                this._data[type] = Object.assign({}, obj || {});
-            }
-        } else {
-            if (this._hasInitState) {
-                return console.error('it has already init state all' + obj)
-            } else {
-                this._hasInitState = true;
-            }
-            type = undefined;
-            obj = type;
-            this._data = Object.assign(this._data, obj || {});
-        }
-        return this.getModule(type);
-    }
-
-    forceUpdate(cb) {
-        this._update && this._update(cb);
-        return this;
-    }
-
-    setState(obj, cb) {
-        this._data = Object.assign(this.state, obj);
+    setState (obj, cb){
+        Object.assign(this._$$data, obj || {});
         this.forceUpdate(cb);
         return this;
     }
-    _create(key) {
+    forceUpdate(cb){
+        this._$$update && this._$$update(cb);
+    }
+}
+
+class Data extends childData{
+    _$$allModule = {};
+    get DATA (){
+        return this
+    }
+    createModule(key,data){
         const that = this;
-        class Child extends Message{
-            forceUpdate (...props) {
-                that.forceUpdate.apply(that, props);
-                return this;
-            }
-            clear (i) {
-                if (i === undefined) {
-                    delete that._data[i]
-                } else {
-                    delete this.state[i]
-                }
-                return this;
-            }
-            get state() {
-                return that._data[key]
-            }
-            setState (obj, cb){
-                that._data[key] = Object.assign(this.state, obj);
-                that.setState({}, cb);
-                return this;
-            }
-            top = that;
+        if(this.existModule(key)){
+            console.log(`key ${key} found in ${this._$$allModule}`);
+            data && (this._$$allModule[key].state = data);
+        }else{
+            this._$$allModule[key] = new childData({
+                data: data,
+                update: that._$$update,
+                top: that,
+            })
         }
-        return new Child();
+        return this._$$allModule[key]
+    }
+    existModule(key){
+        return !!this._$$allModule[key]
+    }
+    removeModule(key){
+        delete this._$$allModule[key];
+        return this
     }
     getModule(key) {
-        var that = this;
-        if (key === undefined) return that;
-        if (!that._all[key]) {
-            that._all[key] = that._create(key);
+        const that = this;
+        if (key === undefined) return this._$$allModule;
+        if (!this.existModule(key)) {
+            //that._$$allModule[key] = that._$$allModule(key);
+            //console.log(`key ${key} not found in ${this._$$allModule}`)
+            return this.createModule(key)
         }
-        return that._all[key];
+        return that._$$allModule[key];
     }
-};
+}
 export default Data;

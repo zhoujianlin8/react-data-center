@@ -4,7 +4,7 @@
 npm install react-data-center --save
 ```
 * react 数据中心模块解决数据统一各模块通信问题
-
+* 支持安全渲染
 ## 使用
 * 主入口
 
@@ -40,10 +40,9 @@ const obj = {
             }
         },
         component: Edit
-
     }, 
     stage:(Data)=>{
-        var stage = Data.initState('stage',{
+        var stage = Data.createModule('stage',{
             age: '11'
         });
         stage.props = (Data)=>{

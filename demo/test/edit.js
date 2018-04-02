@@ -9,7 +9,11 @@ class Edit extends Component {
         return (<div className="">
             {this.props.age}
             <input type="text" value={this.props.state.name} onChange={this.onChangeName.bind(this)}/>
+            <div onClick = {this.onClick.bind(this)}>btn</div>
         </div>)
+    }
+    onClick(){
+        console.log(22)
     }
     onChangeName(e){
         this.props.setState({
